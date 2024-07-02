@@ -9,9 +9,10 @@ namespace ResxTranslator
 	using System;
 	using System.Collections.Generic;
 	using System.Diagnostics;
-	using System.Drawing;
-	using System.IO;
-	using System.Linq;
+    using System.Drawing;
+    using System.Globalization;
+    using System.IO;
+    using System.Linq;
 	using System.Text.RegularExpressions;
 	using System.Threading;
 	using System.Web;
@@ -277,7 +278,9 @@ namespace ResxTranslator
 
 				var displayName = Translator.GetDisplayName(toCode);
 				var cultureName = Translator.GetCultureName(toCode);
-				var outputFile = $"{filepath}.{cultureName}.resx";
+				string langCode = CultureInfo.GetCultureInfo(cultureName).TwoLetterISOLanguageName;
+
+                var outputFile = $"{filepath}.{langCode}.resx";
 
 				statusLabel.Text = $"Translating to {toCode} - {displayName} ({cultureName})";
 
