@@ -30,8 +30,7 @@ namespace ResxTranslator
 
 	internal class Translator
 	{
-		//private const int PerEstimate = 1250;
-		private const int PerEstimate = 100;
+		private const int PerEstimate = 300;
 
 
 		public static readonly List<string> Codes = new List<string>

@@ -6,21 +6,21 @@
 
 namespace ResxTranslator
 {
-	using System;
-	using System.Collections.Generic;
-	using System.Diagnostics;
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Drawing;
     using System.Globalization;
     using System.IO;
     using System.Linq;
-	using System.Text.RegularExpressions;
-	using System.Threading;
-	using System.Web;
-	using System.Windows.Forms;
-	using System.Xml.Linq;
+    using System.Text.RegularExpressions;
+    using System.Threading;
+    using System.Web;
+    using System.Windows.Forms;
+    using System.Xml.Linq;
 
 
-	public partial class MainWindow : Form
+    public partial class MainWindow : Form
 	{
 		private const string CodePattern = @".+\.(?<code>.+)\.resx";
 		private const string FilePattern = @"(?<file>.+)(\.(?<code>.+)){0,1}\.resx";
@@ -67,7 +67,7 @@ namespace ResxTranslator
 			if (!string.IsNullOrEmpty(inputPath))
 			{
 				inputBox.Text = inputPath;
-			}
+            }
 		}
 
 
@@ -151,7 +151,7 @@ namespace ResxTranslator
 		{
 			backendUpdate = true;
 
-			var regex = new Regex(@"\.(([a-z]{2,3})\-[A-Z]{2})\.resx");
+			var regex = new Regex(@"\.(([a-z]{2,3})(?:\-[A-Z]{2})?)\.resx");
 
 			var dir = Path.GetDirectoryName(inputBox.Text);
 			if (Directory.Exists(dir))
@@ -289,19 +289,21 @@ namespace ResxTranslator
 				var root = XElement.Load(inputPath);
 
 				var data = ResxProvider.CollectStrings(root);
+				const int msPerString = 300;
 
 				if (newStringsBox.Checked && File.Exists(outputFile))
 				{
 					data = ResxProvider.CollectNewStrings(data, outputFile);
-					var span = new TimeSpan(0, 0, (int)(data.Count * 0.1));
-					estimationLabel.Text = $"{data.Count} {toCode} strings. Estimated completion in {span}";
-
-					// count per file
-					progressBar.Maximum = data.Count;
-					progressBar.Value = 0;
 				}
 
-				try
+                var span = TimeSpan.FromMilliseconds(data.Count * msPerString);
+                estimationLabel.Text = $"{data.Count} {toCode} strings. Estimated completion in {span}";
+
+                // count per file
+                progressBar.Maximum = data.Count;
+                progressBar.Value = 0;
+
+                try
 				{
 					Log($"{NL}Translating {data.Count} strings to {toCode}{NL}", Color.Green);
 
@@ -310,13 +312,15 @@ namespace ResxTranslator
 					var success = await translator.TranslateResx(
 						data, fromCode, toCode, cancellation,
 						(message, color, increment) =>
-						{
-							Log(message, color);
-
-							if (increment)
+                        {
+                            Log(message, color);
+                            if (increment)
 							{
-								progressBar.Increment(1);
-							}
+                                progressBar.Increment(1);
+
+                                var newSpan = TimeSpan.FromMilliseconds((progressBar.Maximum - progressBar.Value) * msPerString);
+                                estimationLabel.Text = $"{data.Count} {toCode} strings. Estimated completion in {newSpan}";
+                            }
 						});
 
 					if (cancellation.IsCancellationRequested)
