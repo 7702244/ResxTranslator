@@ -60,9 +60,9 @@ namespace ResxTranslator
 					(
 						// collect all edited entries
 						d.Element("comment")?.Value.Contains("EDIT") == true ||
-						// collect entries that don't exist in target
+						// collect entries that don't exist in target or have no value
 						!target.Elements("data")
-							.Any(e => e.Attribute("name")?.Value == d.Attribute("name").Value)
+							.Any(e => e.Attribute("name")?.Value == d.Attribute("name").Value && !string.IsNullOrEmpty(e.Element("value")?.Value))
 					))
 					.ToList();
 			}
